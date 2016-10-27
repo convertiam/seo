@@ -1,0 +1,19 @@
+library("igraph")
+# Intercambiar ruta a su Screaming Frog Todos_Outlink CSV. Para Windows, recuerde cambiar las barras invertidas de barras diagonales.
+links <- read.csv("C:/Documents/screaming-frog-all-outlinks.csv", skip = 1) # CSV Path
+# Esta línea de código es opcional. Se filtra el JavaScript, CSS e imágenes. Técnicamente debe mantenerlos allí.
+links <- subset(links, Type=="HREF") # Optional line. Filter.
+links <- subset(links, Follow=="true")
+links <- subset(links, select=c(Source,Destination))
+g <- graph.data.frame(links)
+pr <- page.rank(g, algo = "prpack", vids = V(g), directed = TRUE, damping = 0.85)
+values <- data.frame(pr$vector)
+values$names <- rownames(values)
+row.names(values) <- NULL
+values <- values[c(2,1)]
+names(values)[1] <- "url"
+names(values)[2] <- "pr"
+# Intercambiar el nombre "dominio" por el tuyo y la extensión "com" por el tuyo dejar los signos ?.
+values <- values[grepl("https?:\\/\\/(.*\\.)?domain\\.com.*", values$url),] # Domain filter.
+#  Reemplazar con el nombre del archivo deseado para el archivo de salida y su ubicación.
+write.csv(values, file = "output-pagerank.csv") # Output file.
